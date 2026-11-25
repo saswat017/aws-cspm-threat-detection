@@ -1,0 +1,5 @@
+# Copy to terraform.tfvars (gitignored) and change only what you need.
+aws_region       = "us-east-1"
+aws_profile      = "cspm-lab"
+project_name     = "cspm-lab"
+assign_public_ip = false
