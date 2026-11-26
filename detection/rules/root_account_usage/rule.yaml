@@ -1,0 +1,14 @@
+id: DET-005
+name: Root account used
+severity: critical
+type: event
+source: cloudtrail
+description: >
+  The root user signed in or made an API call. Root should almost never be used, so any
+  use is either an admin emergency or a compromised account (CIS 4.3 monitoring control).
+mitre:
+  technique_id: T1078.004
+  technique: "Valid Accounts: Cloud Accounts"
+  tactic: Initial Access, Persistence
+frequency: real-time (EventBridge)
+response: Confirm with the account owner immediately. If unexpected, reset the root password and MFA.

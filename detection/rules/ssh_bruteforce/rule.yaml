@@ -1,0 +1,22 @@
+id: DET-011
+name: SSH brute-force attempt
+severity: high
+type: flowlog_threshold  # counts VPC Flow Log records instead of CloudTrail events
+source: flowlogs
+description: >
+  Many connection attempts to port 22 from a single source IP in a short time, seen in
+  VPC Flow Logs. On real AWS, GuardDuty reports the same pattern as
+  UnauthorizedAccess:EC2/SSHBruteForce.
+flowlog_match:
+  dstport: "22"
+  protocol: "6"           # TCP
+threshold:
+  count: 20
+  window_minutes: 5
+  group_by: srcaddr
+mitre:
+  technique_id: T1110.001
+  technique: "Brute Force: Password Guessing"
+  tactic: Credential Access
+frequency: every 5 minutes (CloudWatch metric filter + alarm)
+response: Make sure no security group allows SSH from the internet; block the source IP.

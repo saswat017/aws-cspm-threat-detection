@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars (gitignored).
+aws_profile        = "cspm-lab"
+alert_email        = "you@example.com"
+monthly_budget_usd = 1
+enable_guardduty   = false
+enable_securityhub = false

@@ -1,0 +1,18 @@
+id: DET-007
+name: Repeated failed console logins
+severity: high
+type: threshold         # fires when enough matching events happen within the window
+source: cloudtrail
+description: >
+  Several failed AWS console logins in a short time (CIS 4.6 monitoring control): someone
+  is guessing passwords.
+threshold:
+  count: 3
+  window_minutes: 5
+  group_by: detail.sourceIPAddress
+mitre:
+  technique_id: T1110
+  technique: Brute Force
+  tactic: Credential Access
+frequency: every 5 minutes (CloudWatch metric filter + alarm)
+response: Block the source IP if possible; make sure the targeted users have MFA.

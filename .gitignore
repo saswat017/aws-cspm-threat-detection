@@ -22,3 +22,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 *.egg-info/
+
+# Lock files generated here only hold Linux checksums; let `terraform init` create them on your machine.
+.terraform.lock.hcl

@@ -1,0 +1,16 @@
+id: DET-009
+name: Secret read from a new IP address
+severity: medium
+type: new_value         # fires the first time a value is seen (after the first one is learned)
+source: cloudtrail
+description: >
+  A secret was read from a source IP never seen reading secrets before. Stolen credentials
+  are usually used from the attacker's own network, not the app's.
+new_value:
+  field: detail.sourceIPAddress
+mitre:
+  technique_id: T1555.006
+  technique: "Credentials from Password Stores: Cloud Secrets Management Stores"
+  tactic: Credential Access
+frequency: on each engine run (Python engine only; CloudWatch has no first-seen logic)
+response: Check whether the IP belongs to your organisation; if not, treat the credentials as stolen.

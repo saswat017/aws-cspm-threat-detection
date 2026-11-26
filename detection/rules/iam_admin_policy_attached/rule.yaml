@@ -1,0 +1,14 @@
+id: DET-003
+name: AdministratorAccess granted
+severity: critical
+type: event
+source: cloudtrail
+description: >
+  The AWS managed AdministratorAccess policy was attached to a user, group or role.
+  Attackers do this to keep full control of an account (privilege escalation / persistence).
+mitre:
+  technique_id: T1098.003
+  technique: "Account Manipulation: Additional Cloud Roles"
+  tactic: Persistence, Privilege Escalation
+frequency: real-time (EventBridge)
+response: Verify the change was approved; if not, detach the policy and rotate the actor's credentials.

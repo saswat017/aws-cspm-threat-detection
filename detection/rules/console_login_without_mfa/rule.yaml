@@ -1,0 +1,14 @@
+id: DET-006
+name: Console login without MFA
+severity: high
+type: event
+source: cloudtrail
+description: >
+  An IAM user signed in to the AWS console successfully without MFA (CIS 4.2 monitoring
+  control). A stolen password alone was enough to get in.
+mitre:
+  technique_id: T1078.004
+  technique: "Valid Accounts: Cloud Accounts"
+  tactic: Initial Access
+frequency: real-time (EventBridge)
+response: Confirm the login with the user; enforce MFA for every console user.

@@ -1,0 +1,18 @@
+id: DET-008
+name: Spike in secret reads
+severity: high
+type: threshold
+source: cloudtrail
+description: >
+  Many secret reads (SSM SecureString, Secrets Manager, KMS Decrypt) by one identity in a
+  short time. Normal apps read a secret once at start-up; an attacker harvests them all.
+threshold:
+  count: 10
+  window_minutes: 5
+  group_by: detail.userIdentity.arn
+mitre:
+  technique_id: T1555.006
+  technique: "Credentials from Password Stores: Cloud Secrets Management Stores"
+  tactic: Credential Access
+frequency: every 5 minutes (CloudWatch metric filter + alarm)
+response: Identify the caller; if unexpected, revoke its credentials and rotate the secrets it read.

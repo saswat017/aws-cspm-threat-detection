@@ -16,14 +16,19 @@ assess, detect, alert and report only.
 ## Modules and status
 | # | Module | Folder | Status |
 |---|---|---|---|
-| 1 | Target environment | `terraform/target/` | Done (not yet applied) |
-| 2 | Monitoring foundation | `terraform/monitoring/` | Next |
-| 3 | Posture scanner | `scanner/` | To do |
-| 4 | Threat detection | `detection/` + `terraform/monitoring/detections.tf` | To do |
-| 5 | Attack simulation | `simulation/` | To do |
-| 6 | Dashboard and reports | `dashboard/` + `scanner report` | To do |
+| 1 | Target environment | `terraform/target/` | Done, deployed to emulator |
+| 2 | Monitoring foundation | `terraform/monitoring/` | Done, deployed to emulator |
+| 3 | Posture scanner | `scanner/` | Done (24 checks, score, diff, Prowler in live mode) |
+| 4 | Threat detection | `detection/` + `terraform/monitoring/detections.tf` | Done (11 rules, engine) |
+| 5 | Attack simulation | `simulation/` | Done (9 scenarios, revert, MTTD) |
+| 6 | Dashboard and reports | `dashboard/` + `scanner report` | Next: Streamlit dashboard with controls, HTML report |
 
 ## Decisions made
+0. **Emulator (demo mode).** The real AWS accounts are blocked by AWS Organizations SCPs, so the
+   lab runs on moto (`python -m lab up`), with `CSPM_MODE=demo|live`. Same Terraform and Python
+   code in both modes; in demo mode the simulator writes marked CloudTrail/flow-log records.
+   Details: `docs/emulator.md`. Simulations are Python (boto3), not AWS CLI scripts, so they run
+   on Windows and in both modes.
 1. **Free substitutions:** no KMS customer key (AWS-managed keys), no Secrets Manager (SSM
    Parameter Store SecureString), no public IPv4 (`assign_public_ip = false`). See
    `docs/target-environment.md`.
@@ -50,4 +55,5 @@ assess, detect, alert and report only.
    KMS keys to check".
 
 ## Owner's setup
-- AWS CLI profile `cspm-lab` = IAM user `cspm-admin` (AdministratorAccess, access key).
+- Windows laptop, VS Code. AWS CLI profile `cspm-lab` (account blocked by SCPs, see above).
+- Demo: `python -m lab up`, then the demo script in README.md.

@@ -1,0 +1,14 @@
+id: DET-004
+name: New IAM user or access key created
+severity: medium
+type: event
+source: cloudtrail
+description: >
+  A new IAM user, console password or access key was created. Attackers create their own
+  users and keys to keep access even if the original credentials are revoked.
+mitre:
+  technique_id: T1136.003
+  technique: "Create Account: Cloud Account (and T1098.001 Additional Cloud Credentials)"
+  tactic: Persistence
+frequency: real-time (EventBridge)
+response: Confirm the new identity is expected; otherwise delete it and review what it did.

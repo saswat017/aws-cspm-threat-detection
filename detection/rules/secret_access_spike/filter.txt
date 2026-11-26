@@ -1,0 +1,1 @@
+{ ($.eventName = "GetParameter") || ($.eventName = "GetParameters") || ($.eventName = "GetSecretValue") || ($.eventName = "Decrypt") }

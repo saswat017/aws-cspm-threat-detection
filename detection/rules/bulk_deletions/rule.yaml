@@ -1,0 +1,18 @@
+id: DET-010
+name: Bulk resource deletion
+severity: high
+type: threshold
+source: cloudtrail
+description: >
+  One identity deleted or terminated many resources in a few minutes: possible sabotage,
+  ransomware-style destruction, or an attacker covering tracks.
+threshold:
+  count: 10
+  window_minutes: 5
+  group_by: detail.userIdentity.arn
+mitre:
+  technique_id: T1485
+  technique: Data Destruction
+  tactic: Impact
+frequency: every 5 minutes (CloudWatch metric filter + alarm)
+response: Stop the identity (deactivate keys), then restore from backups or versioned copies.

@@ -1,0 +1,7 @@
+{
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventName": ["GetParameter", "GetParameters", "GetSecretValue", "Decrypt"],
+    "eventSource": ["ssm.amazonaws.com", "secretsmanager.amazonaws.com", "kms.amazonaws.com"]
+  }
+}

@@ -1,0 +1,16 @@
+id: DET-001
+name: Security group opened to the internet
+severity: high
+type: event            # fires on every matching CloudTrail event
+source: cloudtrail
+description: >
+  An inbound security group rule was added or changed with source 0.0.0.0/0 or ::/0.
+  This exposes the instances behind it to the whole internet (e.g. SSH brute force).
+mitre:
+  technique_id: T1562.007
+  technique: "Impair Defenses: Disable or Modify Cloud Firewall"
+  tactic: Defense Evasion
+frequency: real-time (EventBridge)
+response: >
+  Confirm who made the change (userIdentity) and why. If it was not approved, remove the
+  rule and review the instance for signs of access.

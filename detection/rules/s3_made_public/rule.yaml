@@ -1,0 +1,17 @@
+id: DET-002
+name: S3 bucket public access protection changed
+severity: critical
+type: event
+source: cloudtrail
+description: >
+  A bucket's Block Public Access was removed, or its policy or ACL was changed. These are
+  the API calls used to make a bucket public. The posture scanner (S3-001/S3-002) confirms
+  whether the bucket actually became public.
+mitre:
+  technique_id: T1530
+  technique: Data from Cloud Storage
+  tactic: Collection
+frequency: real-time (EventBridge)
+response: >
+  Check the bucket with `python -m scanner scan`. If it is public and should not be,
+  re-enable Block Public Access and investigate S3 data events for downloads.

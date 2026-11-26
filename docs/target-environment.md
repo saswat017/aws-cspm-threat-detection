@@ -34,3 +34,11 @@ Checkov on this folder: **75 passed, 7 failed**. The failures are deliberate:
 | CKV_AWS_144 S3 cross-region replication | Doubles storage cost; not needed for lab data |
 
 These pre-deployment results are a baseline. The point of this project is what happens **after** deployment, when someone changes these settings by hand in the console.
+
+## Monitoring module (Checkov)
+
+Checkov on all Terraform: **180 passed, 21 failed**. The extra failures in `terraform/monitoring`
+are also cost trade-offs: KMS customer keys for log groups, CloudTrail and SNS (CKV_AWS_158/35/26),
+1-year log retention (CKV_AWS_338, we keep 14 days to stay free), S3 access logging/replication
+for the CloudTrail bucket, and CKV2_AWS_11 on the target VPC (flow logs are created by the
+monitoring stack, which Checkov cannot see across folders).

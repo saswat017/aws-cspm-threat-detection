@@ -43,3 +43,19 @@ variable "assign_public_ip" {
   type        = bool
   default     = false
 }
+
+variable "use_emulator" {
+  description = <<-EOT
+    true = deploy into the local AWS emulator (moto) instead of real AWS.
+    Used because the lab AWS account is restricted by an AWS Organizations
+    service control policy. The same code deploys to real AWS when false.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "emulator_endpoint" {
+  description = "URL of the local AWS emulator (moto_server)."
+  type        = string
+  default     = "http://127.0.0.1:5001"
+}

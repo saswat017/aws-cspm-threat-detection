@@ -1,0 +1,7 @@
+{
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventName": [{"prefix": "Delete"}, {"prefix": "Terminate"}],
+    "readOnly": [false]
+  }
+}
