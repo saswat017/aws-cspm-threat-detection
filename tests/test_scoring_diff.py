@@ -61,5 +61,6 @@ def test_comparable_scans_same_environment(tmp_path, monkeypatch):
     for stamp, mode, acct in [("20260101T000001Z", "demo", "1"), ("20260101T000002Z", "live", "2"),
                               ("20260101T000003Z", "demo", "1")]:
         (tmp_path / f"scan-{stamp}.json").write_text(json.dumps({"mode": mode, "account_id": acct}))
-    assert [p.name for p in results.comparable_scans()] == [
+    assert [p.name for p in results.comparable_scans("demo")] == [
         "scan-20260101T000001Z.json", "scan-20260101T000003Z.json"]
+    assert [p.name for p in results.comparable_scans("live")] == ["scan-20260101T000002Z.json"]

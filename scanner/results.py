@@ -21,22 +21,19 @@ def list_scans():
     return sorted(config.RESULTS_DIR.glob(SCAN_GLOB))
 
 
-def comparable_scans():
-    """Scans from the same mode and account as the newest scan, oldest first.
+def comparable_scans(mode=None):
+    """Scans of one environment (mode + account), oldest first.
 
     Drift and trends only make sense within one environment: never compare an
-    emulator scan with a real-account scan, or two different accounts."""
-    paths = list_scans()
-    if not paths:
-        return []
+    emulator scan with a real-account scan, or two different accounts.
+    By default the environment is the current CSPM_MODE and the account of the
+    newest scan in that mode."""
+    mode = mode or config.MODE
     def env(path):
         data = json.loads(open(path).read())
         return data.get("mode"), data.get("account_id")
-    target = env(paths[-1])
-    return [p for p in paths if env(p) == target]
-
-
-def load_scan(path) -> dict:
-    data = json.loads(open(path).read())
-    data["findings"] = [Finding.from_dict(f) for f in data["findings"]]
-    return data
+    in_mode = [(p, env(p)) for p in list_scans() if env(p)[0] == mode]
+    if not in_mode:
+        return []
+    target = in_mode[-1][1]
+    return [p for p, e in in_mode if e == target]

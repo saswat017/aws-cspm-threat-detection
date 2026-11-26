@@ -52,7 +52,7 @@ def get_aws():
 
 
 def load_all_scans():
-    """Scans of the newest scan's environment only (same mode and account)."""
+    """Scans of the current mode (CSPM_MODE) only, from one account."""
     return [results.load_scan(p) for p in results.comparable_scans()]
 
 
@@ -164,7 +164,9 @@ mttd_rows = compute_mttd()
 
 st.title("Continuous Security Posture and Threat Detection")
 if not scans:
-    st.info("No scans yet. Start the lab (sidebar), then press **Run posture scan**.")
+    st.info(f"No {config.MODE}-mode scans yet. "
+            + ("Start the lab (sidebar), then " if config.MODE == "demo" else "")
+            + "press **Run posture scan**.")
 
 latest = scans[-1] if scans else None
 previous = scans[-2] if len(scans) > 1 else None
