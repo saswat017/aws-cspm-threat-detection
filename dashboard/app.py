@@ -231,7 +231,12 @@ with tab_findings:
 # --------------------------------------------------------------------- drift --
 with tab_drift:
     if previous:
-        d = diff_scans(previous, latest)
+        # Compare the latest scan with any earlier one (e.g. a baseline before fixes).
+        earlier = scans[:-1][::-1]   # newest first
+        labels = [f"{x['scan_id']} · score {x['summary']['score']}" for x in earlier]
+        choice = st.selectbox("Compare the latest scan with", range(len(earlier)),
+                              format_func=lambda i: ("previous scan: " if i == 0 else "") + labels[i])
+        d = diff_scans(earlier[choice], latest)
         st.markdown(f"Comparing scan **{d['old_scan']}** with **{d['new_scan']}** · score change "
                     f"**{d['score_change']:+}** · unchanged findings: {d['unchanged']}")
         c1, c2 = st.columns(2)

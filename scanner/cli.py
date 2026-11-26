@@ -1,7 +1,7 @@
 """Command line for the posture scanner.
 
     python -m scanner scan [--no-prowler]   run all checks, save results/scan-<time>.json
-    python -m scanner diff                  compare the last two scans (drift detection)
+    python -m scanner diff [--back N]       compare the latest scan with the previous one (or N back)
     python -m scanner report                build an HTML assessment report (Module 6)
     python -m scanner checks                list every custom check
 """
@@ -75,12 +75,13 @@ def cmd_scan(args):
     print(f"\nSaved: {path}")
 
 
-def cmd_diff(_args):
+def cmd_diff(args):
     scans = results.comparable_scans()
     if len(scans) < 2:
         sys.exit("Need at least two scans of the same environment (mode + account). "
                  "Run `python -m scanner scan` twice.")
-    d = diff_scans(results.load_scan(scans[-2]), results.load_scan(scans[-1]))
+    back = min(max(args.back, 1), len(scans) - 1)   # how many scans to look back
+    d = diff_scans(results.load_scan(scans[-1 - back]), results.load_scan(scans[-1]))
     print(f"Drift between scan {d['old_scan']} and {d['new_scan']}")
     print(f"Score change: {d['score_change']:+}   unchanged findings: {d['unchanged']}\n")
     print(f"NEW findings ({len(d['new'])}):")
@@ -111,7 +112,10 @@ def main():
     scan = sub.add_parser("scan", help="run every check and save the results")
     scan.add_argument("--no-prowler", action="store_true", help="skip Prowler in live mode")
     scan.set_defaults(func=cmd_scan)
-    sub.add_parser("diff", help="new/resolved findings between the last two scans").set_defaults(func=cmd_diff)
+    diff = sub.add_parser("diff", help="new/resolved findings between two scans (drift)")
+    diff.add_argument("--back", type=int, default=1,
+                      help="compare the latest scan with the one N scans earlier (default 1 = previous)")
+    diff.set_defaults(func=cmd_diff)
     sub.add_parser("checks", help="list the custom checks").set_defaults(func=cmd_checks)
     sub.add_parser("report", help="HTML assessment report").set_defaults(func=cmd_report)
     args = parser.parse_args()

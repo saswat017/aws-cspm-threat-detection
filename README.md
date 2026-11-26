@@ -133,5 +133,6 @@ by default (trial, then paid; Security Hub also needs AWS Config). Demo mode cos
   runtime vs IaC scanning, limitations
 - [docs/mitre-mapping.md](docs/mitre-mapping.md): every detection rule mapped to MITRE ATT&CK
 - [docs/emulator.md](docs/emulator.md): what is real and what is emulated
+- [docs/hardening-demo.md](docs/hardening-demo.md): fix findings by hand and watch the score rise
 - [docs/target-environment.md](docs/target-environment.md): Module 1 design and accepted risks
 - [docs/PLAN.md](docs/PLAN.md): plan, decisions and status
