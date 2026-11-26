@@ -111,8 +111,8 @@ def deploy():
     tf_vars = ["-var", "use_emulator=true", "-var", f"emulator_endpoint={ENDPOINT}"]
     for stack in STACKS:
         print(f"\n=== terraform apply: {stack} (emulator) ===")
-        if not (TF / stack / ".terraform").exists():
-            terraform(stack, "init", "-input=false")
+        # Always init: it is quick, and it repairs a missing or stale lock file.
+        terraform(stack, "init", "-input=false")
         terraform(stack, "workspace", "select", "-or-create", WORKSPACE)
         try:
             extra = ["-var", "alert_email=alerts@example.com"] if stack == "monitoring" else []
