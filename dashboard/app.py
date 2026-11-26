@@ -52,7 +52,8 @@ def get_aws():
 
 
 def load_all_scans():
-    return [results.load_scan(p) for p in results.list_scans()]
+    """Scans of the newest scan's environment only (same mode and account)."""
+    return [results.load_scan(p) for p in results.comparable_scans()]
 
 
 def findings_frame(scan):
@@ -173,7 +174,11 @@ m1, m2, m3, m4, m5 = st.columns(5)
 if latest:
     s = latest["summary"]
     delta = round(s["score"] - previous["summary"]["score"], 1) if previous else None
-    m1.metric("Posture score", f"{s['score']}/100", delta=delta)
+    m1.metric("Posture score", f"{s['score']}/100", delta=delta,
+              help=f"Coverage {s['coverage_pct']}% of checks evaluated")
+    if s.get("low_coverage"):
+        st.warning(f"Only {s['coverage_pct']}% of checks could be evaluated (missing read permissions), "
+                   "so the posture score is not meaningful.")
     m2.metric("Failed checks", s["failed"])
     m3.metric("Critical findings", s["failed_by_severity"]["critical"])
 m4.metric("Alerts raised", len(alerts))
@@ -203,7 +208,9 @@ with tab_overview:
         if len(fails):
             show(c2, count_bar(fails, "service", "By service"))
             show(c3, count_bar(fails, "cis_section", "By CIS section"))
-        st.caption(f"Latest scan {latest['scan_id']} · mode {latest['mode']} · Prowler: {latest['prowler']}")
+        st.caption(f"Latest scan {latest['scan_id']} · mode {latest['mode']} · account {latest['account_id']} · "
+                   f"coverage {latest['summary']['coverage_pct']}% · Prowler: {latest['prowler']} · "
+                   "only scans of this environment are shown")
 
 # ------------------------------------------------------------------ findings --
 with tab_findings:

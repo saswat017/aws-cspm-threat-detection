@@ -65,6 +65,10 @@
   {% endif %}
 
   <h2>Executive summary</h2>
+  {% if summary.low_coverage %}
+  <div class="banner"><strong>Low coverage ({{ summary.coverage_pct }}%).</strong> Most checks could not be
+    evaluated (missing read permissions), so the score below is not meaningful.</div>
+  {% endif %}
   <p>
     The account scores <strong>{{ summary.score }}/100</strong> on {{ summary.results }} check results
     ({{ summary.passed }} passed, {{ summary.failed }} failed{% if summary.errors %}, {{ summary.errors }} could not be evaluated{% endif %}).

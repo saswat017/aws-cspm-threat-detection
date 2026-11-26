@@ -62,6 +62,9 @@ def cmd_scan(args):
     s = meta["summary"]
     print(f"\nPosture score: {s['score']}/100   "
           f"({s['passed']} pass, {s['failed']} fail, {s['errors']} error, coverage {s['coverage_pct']}%)")
+    if s["low_coverage"]:
+        print(f"WARNING: only {s['coverage_pct']}% of checks could be evaluated, so the score is NOT "
+              "meaningful. Give the scanner more read permissions (e.g. the SecurityAudit policy).")
     print("Failed by severity: " + ", ".join(f"{k} {v}" for k, v in s["failed_by_severity"].items()))
     print(f"Prowler: {meta['prowler']}")
     fails = sorted((f for f in findings if f.status == "FAIL"), key=lambda f: SEV_ORDER[f.severity])
@@ -73,9 +76,10 @@ def cmd_scan(args):
 
 
 def cmd_diff(_args):
-    scans = results.list_scans()
+    scans = results.comparable_scans()
     if len(scans) < 2:
-        sys.exit("Need at least two scans. Run `python -m scanner scan` twice.")
+        sys.exit("Need at least two scans of the same environment (mode + account). "
+                 "Run `python -m scanner scan` twice.")
     d = diff_scans(results.load_scan(scans[-2]), results.load_scan(scans[-1]))
     print(f"Drift between scan {d['old_scan']} and {d['new_scan']}")
     print(f"Score change: {d['score_change']:+}   unchanged findings: {d['unchanged']}\n")

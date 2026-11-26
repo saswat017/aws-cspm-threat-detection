@@ -45,3 +45,21 @@ def test_prowler_ocsf_normalization(tmp_path):
     out = normalize_ocsf(path)[0]
     assert (out.check_id, out.status, out.severity, out.cis_ref, out.source) == (
         "iam_root_mfa_enabled", "FAIL", "high", "CIS-3.0 1.5", "prowler")
+
+
+def test_low_coverage_flag():
+    s = summarize([f("A", "PASS")] + [f(str(i), "ERROR") for i in range(9)])
+    assert s["coverage_pct"] == 10.0 and s["low_coverage"] is True
+    assert summarize([f("A", "PASS"), f("B", "FAIL")])["low_coverage"] is False
+
+
+def test_comparable_scans_same_environment(tmp_path, monkeypatch):
+    import json
+    from common import config
+    from scanner import results
+    monkeypatch.setattr(config, "RESULTS_DIR", tmp_path)
+    for stamp, mode, acct in [("20260101T000001Z", "demo", "1"), ("20260101T000002Z", "live", "2"),
+                              ("20260101T000003Z", "demo", "1")]:
+        (tmp_path / f"scan-{stamp}.json").write_text(json.dumps({"mode": mode, "account_id": acct}))
+    assert [p.name for p in results.comparable_scans()] == [
+        "scan-20260101T000001Z.json", "scan-20260101T000003Z.json"]

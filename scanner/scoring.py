@@ -11,6 +11,8 @@ lower the "coverage" figure so they are never mistaken for a pass.
 from collections import Counter
 
 SEVERITY_WEIGHTS = {"critical": 10, "high": 5, "medium": 2, "low": 1}
+# Below this share of evaluated checks, the score says too little to be trusted.
+MIN_COVERAGE_PCT = 50.0
 
 
 def posture_score(findings) -> float:
@@ -34,5 +36,6 @@ def summarize(findings) -> dict:
         "failed": status["FAIL"],
         "errors": status["ERROR"],
         "coverage_pct": round(100 * evaluated / total, 1) if total else 100.0,
+        "low_coverage": total > 0 and 100 * evaluated / total < MIN_COVERAGE_PCT,
         "failed_by_severity": {s: failed_by_severity.get(s, 0) for s in SEVERITY_WEIGHTS},
     }

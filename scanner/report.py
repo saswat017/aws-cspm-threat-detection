@@ -18,7 +18,7 @@ SEV_ORDER = {s: i for i, s in enumerate(SEVERITY_WEIGHTS)}
 
 
 def build_report() -> str:
-    scans = results.list_scans()
+    scans = results.comparable_scans()
     if not scans:
         raise SystemExit("No scans yet. Run: python -m scanner scan")
     latest = results.load_scan(scans[-1])
