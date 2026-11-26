@@ -64,3 +64,14 @@ def test_comparable_scans_same_environment(tmp_path, monkeypatch):
     assert [p.name for p in results.comparable_scans("demo")] == [
         "scan-20260101T000001Z.json", "scan-20260101T000003Z.json"]
     assert [p.name for p in results.comparable_scans("live")] == ["scan-20260101T000002Z.json"]
+
+
+def test_save_and_load_scan_round_trip(tmp_path, monkeypatch):
+    from common import config
+    from scanner import results
+    monkeypatch.setattr(config, "RESULTS_DIR", tmp_path)
+    path = results.save_scan({"mode": config.MODE, "account_id": "1", "summary": summarize([f("A", "FAIL")])},
+                             [f("A", "FAIL")])
+    loaded = results.load_scan(path)
+    assert loaded["findings"][0].check_id == "A"
+    assert [p.name for p in results.comparable_scans()] == [path.split("/")[-1].split("\\")[-1]]

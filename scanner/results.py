@@ -37,3 +37,9 @@ def comparable_scans(mode=None):
         return []
     target = in_mode[-1][1]
     return [p for p, e in in_mode if e == target]
+
+
+def load_scan(path) -> dict:
+    data = json.loads(open(path).read())
+    data["findings"] = [Finding.from_dict(f) for f in data["findings"]]
+    return data
