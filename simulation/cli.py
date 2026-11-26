@@ -13,6 +13,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from botocore.exceptions import ClientError
+
 from common.aws import AwsContext
 from detection.engine import read_alerts
 from simulation.scenarios import SCENARIOS
@@ -62,23 +64,51 @@ def cmd_list(_args):
         print(f"{s.name:20} expects {', '.join(s.expected_rules):18} {s.title}{flag}")
 
 
+def run_one(aws, name) -> dict:
+    """Run one scenario and log it. Used by the CLI and the dashboard."""
+    cls = SCENARIOS[name]
+    if cls.demo_only and aws.mode != "demo":
+        return {"scenario": name, "skipped": "demo only"}
+    started = now()
+    try:
+        details = cls(aws).run()
+    except ClientError as e:
+        code = e.response["Error"]["Code"]
+        if "Duplicate" in code or "AlreadyExists" in code:
+            raise SystemExit(f"{name} is already active. Revert it first: python -m simulation revert {name}")
+        raise
+    entry = {"scenario": name, "action": "run", "mode": aws.mode,
+             "started_at": started.isoformat(timespec="seconds"),
+             "finished_at": now().isoformat(timespec="seconds"),
+             "expected_rules": cls.expected_rules, "details": details}
+    append_log(entry)
+    return entry
+
+
+def revert_one(aws, name) -> dict:
+    """Undo one scenario (manual cleanup by the defender) and log it."""
+    cls = SCENARIOS[name]
+    if cls.demo_only and aws.mode != "demo":
+        return {"scenario": name, "skipped": "demo only"}
+    scenario = cls(aws)
+    scenario.source_ip = scenario.operator_ip   # cleanup is done by the defender
+    details = scenario.revert(last_saved_state(name))
+    entry = {"scenario": name, "action": "revert", "mode": aws.mode,
+             "started_at": now().isoformat(timespec="seconds"), "details": details}
+    append_log(entry)
+    return entry
+
+
 def cmd_run(args):
     aws = AwsContext()
     names = selected(args.scenario)
     confirm_live(aws, args, f"run {', '.join(names)}")
     for name in names:
-        cls = SCENARIOS[name]
-        if cls.demo_only and aws.mode != "demo":
+        entry = run_one(aws, name)
+        if "skipped" in entry:
             print(f"skip {name}: demo only")
-            continue
-        started = now()
-        details = cls(aws).run()
-        entry = {"scenario": name, "action": "run", "mode": aws.mode,
-                 "started_at": started.isoformat(timespec="seconds"),
-                 "finished_at": now().isoformat(timespec="seconds"),
-                 "expected_rules": cls.expected_rules, "details": details}
-        append_log(entry)
-        print(f"RUN    {name:20} at {entry['started_at']}  expects {', '.join(cls.expected_rules)}")
+        else:
+            print(f"RUN    {name:20} at {entry['started_at']}  expects {', '.join(entry['expected_rules'])}")
 
 
 def cmd_revert(args):
@@ -86,15 +116,9 @@ def cmd_revert(args):
     names = list(reversed(selected(args.scenario)))   # undo in reverse order
     confirm_live(aws, args, f"revert {', '.join(names)}")
     for name in names:
-        cls = SCENARIOS[name]
-        if cls.demo_only and aws.mode != "demo":
-            continue
-        scenario = cls(aws)
-        scenario.source_ip = scenario.operator_ip   # cleanup is done by the defender
-        details = scenario.revert(last_saved_state(name))
-        append_log({"scenario": name, "action": "revert", "mode": aws.mode,
-                    "started_at": now().isoformat(timespec="seconds"), "details": details})
-        print(f"REVERT {name:20} {details.get('note', 'done')}")
+        entry = revert_one(aws, name)
+        if "skipped" not in entry:
+            print(f"REVERT {name:20} {entry['details'].get('note', 'done')}")
 
 
 def compute_mttd():

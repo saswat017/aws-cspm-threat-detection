@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import EndpointConnectionError
 
 from common import config
 
@@ -52,7 +53,13 @@ class AwsContext:
     @property
     def account_id(self):
         if self._account_id is None:
-            self._account_id = self.client("sts").get_caller_identity()["Account"]
+            try:
+                self._account_id = self.client("sts").get_caller_identity()["Account"]
+            except EndpointConnectionError:
+                if self.mode == "demo":
+                    raise SystemExit(f"The AWS emulator is not running at {self.endpoint}. "
+                                     "Start it with: python -m lab up")
+                raise
         return self._account_id
 
     def describe(self):

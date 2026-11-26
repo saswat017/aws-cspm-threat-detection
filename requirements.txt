@@ -5,6 +5,8 @@ python-dotenv==1.2.4
 Jinja2==3.1.6
 # Local AWS emulator for demo mode (includes the HTTP server)
 moto[server]==5.2.6
+# Dashboard (Module 6)
+streamlit==1.67.0
 # Tests
 pytest==9.2.0
 # Optional, live mode only (heavy install): prowler

@@ -35,7 +35,9 @@ flowchart LR
     DET -->|alerts| SNS
     SCAN --> RES[("results/<br/>scans, alerts")]
     DET --> RES
-    RES --> DASH["dashboard/ (Module 6)"]
+    RES --> DASH["dashboard/<br/>Streamlit control panel"]
+    DASH -->|"buttons: lab, scan, attack, revert, detect"| SIM
+    RES --> REP["HTML report"]
 ```
 
 | Module | Folder | What it does |
@@ -45,7 +47,7 @@ flowchart LR
 | 3 Posture scanner | `scanner/` | 24 checks (S3, SG, EC2, KMS/secrets, IAM, services) + Prowler, posture score, drift `diff` |
 | 4 Threat detection | `detection/` + `terraform/monitoring/detections.tf` | 11 rule files mapped to MITRE ATT&CK, deployed as EventBridge rules/alarms, plus a Python engine |
 | 5 Attack simulation | `simulation/` | 9 scenarios, each with `revert`; timestamps in `simulation/log.json` for MTTD |
-| 6 Dashboard and report | `dashboard/` | *Next* |
+| 6 Dashboard and report | `dashboard/`, `scanner/report.py` | Streamlit control panel + views; self-contained HTML assessment report |
 | Lab controller | `lab/` | `python -m lab up` starts the emulator and deploys both Terraform stacks into it |
 
 ## Setup (Windows, macOS or Linux)
@@ -78,11 +80,36 @@ python -m simulation mttd             # 7. mean time to detect per attack
 python -m simulation revert all       # 8. manual cleanup
 python -m scanner scan                # 9. score back up
 python -m scanner diff                # 10. drift: RESOLVED findings
+python -m scanner report              # 11. HTML assessment report in results/
 python -m lab down                    # stop the emulator
 ```
 
+Or do the whole demo by clicking in the dashboard (below).
+
 Expected: 12/12 expected detections fire; score about 85 -> 72 -> 85.
 `make <target>` (Linux/macOS) and `.\make.ps1 <target>` (Windows) wrap the same commands.
+
+## Dashboard
+
+```bash
+python -m streamlit run dashboard/app.py      # opens http://localhost:8501
+```
+
+Everything in the demo script can be done from the dashboard:
+
+- **Sidebar controls:** start/stop the lab, run a posture scan, check for threats now,
+  **live detection** (re-checks every 10 s and pops up a notification per alert), generate
+  and download the HTML report.
+- **Overview:** posture score and change, score per scan, failed findings by severity,
+  service and CIS section.
+- **Findings:** filterable table with evidence and recommendations.
+- **Drift:** new and resolved findings between the last two scans.
+- **Threat detection:** alert feed (MITRE technique, actor, source IP), alerts per rule,
+  the rule-to-MITRE mapping.
+- **Attack simulation:** Run / Revert buttons per scenario, mean time to detect per attack.
+
+`python -m scanner report` writes `results/report-<scan>.html`: executive summary, score,
+severity breakdown, trend, drift, findings, recommendations, detections and MTTD.
 
 ## Real AWS (live mode)
 

@@ -170,6 +170,9 @@ def cmd_up(args):
         # The emulator keeps everything in memory, so old state files are stale.
         for stack in STACKS:
             emulator_state_file(stack).unlink(missing_ok=True)
+        # A fresh emulator is a new environment: forget what the detection engine
+        # learned about the old one (checkpoints, baselines).
+        (config.RESULTS_DIR / "detection_state.json").unlink(missing_ok=True)
     deploy()
     print("\nLab is up. Try: python -m scanner scan")
 

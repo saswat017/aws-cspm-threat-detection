@@ -29,7 +29,8 @@ on your own computer.
 | Security Hub `UpdateSecurityHubConfiguration` not implemented | Security Hub stays off (it is also off by default on real AWS) |
 | AWS-managed KMS key `aws/ebs` reported as customer-managed | KMS-001 also treats keys behind `alias/aws/*` as AWS-managed (correct on real AWS too) |
 | Account ID is always `123456789012`, root MFA always "off" | Expected scanner findings in demo mode; documented |
-| State is in memory | `python -m lab up` after a restart redeploys everything (~2 min) |
+| State is in memory | `python -m lab up` after a restart redeploys everything (~2 min) and resets the detection engine's memory |
+| A restarted emulator creates new resource IDs (e.g. the default VPC) | `scanner diff` across a restart shows those as new + resolved; compare scans from the same lab session |
 
 ## Switching to real AWS
 Set `CSPM_MODE=live` in `.env`, configure the `cspm-lab` profile, and run Terraform yourself

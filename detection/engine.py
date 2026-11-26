@@ -39,6 +39,12 @@ def iso(ms: int) -> str:
     return datetime.fromtimestamp(ms / 1000, timezone.utc).isoformat(timespec="seconds")
 
 
+def _event_key(group, event) -> str:
+    """Identity of a log event. Includes the timestamp because an emulator restart
+    can reuse event IDs."""
+    return f"{group}|{event['timestamp']}|{event['eventId']}"
+
+
 def parse_flow_record(message: str):
     parts = message.split()
     return dict(zip(FLOW_FIELDS, parts)) if len(parts) == len(FLOW_FIELDS) else None
@@ -71,7 +77,7 @@ class DetectionEngine:
         try:
             while True:
                 page = self.logs.filter_log_events(**kwargs)
-                events += [e for e in page.get("events", []) if e["eventId"] not in seen]
+                events += [e for e in page.get("events", []) if _event_key(group, e) not in seen]
                 if not page.get("nextToken"):
                     break
                 kwargs["nextToken"] = page["nextToken"]
@@ -80,7 +86,7 @@ class DetectionEngine:
         events.sort(key=lambda e: e["timestamp"])
         if events:
             self.state["checkpoints"][group] = events[-1]["timestamp"]
-            self.state["seen_ids"] += [e["eventId"] for e in events]
+            self.state["seen_ids"] += [_event_key(group, e) for e in events]
         return events
 
     # ---------------------------------------------------------- evaluate --

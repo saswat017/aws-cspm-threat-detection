@@ -21,7 +21,7 @@ assess, detect, alert and report only.
 | 3 | Posture scanner | `scanner/` | Done (24 checks, score, diff, Prowler in live mode) |
 | 4 | Threat detection | `detection/` + `terraform/monitoring/detections.tf` | Done (11 rules, engine) |
 | 5 | Attack simulation | `simulation/` | Done (9 scenarios, revert, MTTD) |
-| 6 | Dashboard and reports | `dashboard/` + `scanner report` | Next: Streamlit dashboard with controls, HTML report |
+| 6 | Dashboard and reports | `dashboard/` + `scanner report` | Done (Streamlit control panel, live detection, HTML report) |
 
 ## Decisions made
 0. **Emulator (demo mode).** The real AWS accounts are blocked by AWS Organizations SCPs, so the
