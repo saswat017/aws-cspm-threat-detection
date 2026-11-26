@@ -36,3 +36,33 @@ on your own computer.
 Set `CSPM_MODE=live` in `.env`, configure the `cspm-lab` profile, and run Terraform yourself
 (`terraform plan`, then `apply` on purpose). The scanner, detection engine and simulation
 work unchanged; the simulator no longer writes CloudTrail records because real CloudTrail does.
+
+## Two-laptop setup: a separate machine as "the cloud"
+
+The emulator can run on a second computer, so the security tools reach "the cloud" over the
+network, the way they would reach AWS over the internet.
+
+```
+ Laptop A (security team)                      Laptop B ("the cloud")
+ Terraform, scanner, detection,   --Wi-Fi-->   moto server, port 5001
+ simulation, dashboard
+```
+
+**Laptop B (the cloud)** only needs Python:
+```powershell
+python -m pip install "moto[server]"
+$env:MOTO_IAM_LOAD_MANAGED_POLICIES = "true"
+python -m moto.server -H 0.0.0.0 -p 5001     # allow it on Private networks in the firewall
+ipconfig                                      # note the IPv4 address, e.g. 192.168.43.120
+```
+(With the repo on laptop B, `python -m lab serve` does the same.)
+
+**Laptop A (security team):** in `.env` set `EMULATOR_ENDPOINT=http://192.168.43.120:5001`,
+restart the dashboard, then `python -m lab up` as usual. `lab up` notices the remote emulator
+is empty and deploys the lab there from scratch.
+
+**Safety:**
+- Demo mode only accepts `localhost` or **private** IP addresses (192.168.x, 10.x, 172.16-31.x),
+  which can never be real AWS. Host names are refused.
+- The emulator has **no password**: use a phone hotspot or home Wi-Fi, never public or college
+  Wi-Fi (which often blocks laptop-to-laptop traffic anyway). Stop it with Ctrl+C afterwards.

@@ -5,6 +5,7 @@ Every module asks AwsContext for clients, so switching between the emulator
 in code: live mode uses the named CLI profile, demo mode uses dummy keys that
 the emulator accepts.
 """
+import ipaddress
 from urllib.parse import urlparse
 
 import boto3
@@ -17,6 +18,19 @@ _BOTO_CONFIG = Config(connect_timeout=5, read_timeout=30,
                       retries={"max_attempts": 3, "mode": "standard"})
 
 
+def is_emulator_address(endpoint: str) -> bool:
+    """Demo mode may only use this computer or a private network address
+    (e.g. a second laptop on the same Wi-Fi). Those can never be real AWS."""
+    host = urlparse(endpoint).hostname or ""
+    if host == "localhost":
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False  # host names are not allowed: they could point anywhere
+    return ip.is_loopback or ip.is_private
+
+
 class AwsContext:
     """Creates boto3 clients for one mode/region and remembers the account ID."""
 
@@ -27,9 +41,10 @@ class AwsContext:
 
         if self.mode == "demo":
             endpoint = endpoint or config.EMULATOR_ENDPOINT
-            # Safety: demo mode may only ever talk to this computer.
-            if urlparse(endpoint).hostname not in ("127.0.0.1", "localhost"):
-                raise ValueError("Demo mode only allows a local emulator endpoint.")
+            # Safety: demo mode may only talk to this computer or a private-network machine.
+            if not is_emulator_address(endpoint):
+                raise ValueError("Demo mode only allows an emulator on this computer or on a "
+                                 "private network address (e.g. 192.168.1.23).")
             self.endpoint = endpoint
             self.session = boto3.session.Session(
                 aws_access_key_id="testing",       # dummy values, not secrets

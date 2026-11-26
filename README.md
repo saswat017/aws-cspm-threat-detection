@@ -132,7 +132,8 @@ by default (trial, then paid; Security Hub also needs AWS Config). Demo mode cos
 - [docs/write-up.md](docs/write-up.md): shared responsibility, CSPM vs threat detection,
   runtime vs IaC scanning, limitations
 - [docs/mitre-mapping.md](docs/mitre-mapping.md): every detection rule mapped to MITRE ATT&CK
-- [docs/emulator.md](docs/emulator.md): what is real and what is emulated
+- [docs/emulator.md](docs/emulator.md): what is real and what is emulated, and the two-laptop
+  setup (a second machine as "the cloud")
 - [docs/hardening-demo.md](docs/hardening-demo.md): fix findings by hand and watch the score rise
 - [docs/target-environment.md](docs/target-environment.md): Module 1 design and accepted risks
 - [docs/PLAN.md](docs/PLAN.md): plan, decisions and status

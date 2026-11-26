@@ -4,6 +4,11 @@
     python -m lab status   show whether the emulator is running and what is deployed
     python -m lab reset    wipe the emulator and deploy again from scratch
     python -m lab down     stop the emulator
+    python -m lab serve    run the emulator in this window, reachable from other computers
+                           (on a second machine acting as "the cloud")
+
+Remote cloud: set EMULATOR_ENDPOINT=http://<other machine's private IP>:5001 in .env;
+`up` then connects to that machine instead of starting a local emulator.
 
 This NEVER touches real AWS: it forces use_emulator=true, dummy credentials and a
 local endpoint. Real AWS is deployed by running terraform yourself, on purpose.
@@ -25,7 +30,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from common import config
-from common.aws import AwsContext
+from common.aws import AwsContext, is_emulator_address
 
 ROOT = config.ROOT
 TF = ROOT / "terraform"
@@ -34,6 +39,10 @@ WORKSPACE = "emulator"
 PID_FILE = config.RESULTS_DIR / ".emulator.pid"
 LOG_FILE = config.RESULTS_DIR / "emulator.log"
 ENDPOINT = config.EMULATOR_ENDPOINT
+# Remote = the emulator runs on another machine (the "cloud" laptop), not here.
+REMOTE = urlparse(ENDPOINT).hostname not in ("127.0.0.1", "localhost")
+if not is_emulator_address(ENDPOINT):
+    sys.exit(f"EMULATOR_ENDPOINT {ENDPOINT} must be this computer or a private IP address.")
 
 
 # ----------------------------------------------------------------- emulator --
@@ -49,6 +58,10 @@ def start_emulator() -> bool:
     """Start moto_server in the background. Returns True if it was freshly started."""
     if emulator_running():
         return False
+    if REMOTE:
+        sys.exit(f"The emulator at {ENDPOINT} is not reachable. On that machine run:\n"
+                 "  python -m moto.server -H 0.0.0.0 -p 5001\n"
+                 "allow port 5001 in its firewall, and use the same Wi-Fi or hotspot.")
     url = urlparse(ENDPOINT)
     cmd = [sys.executable, "-m", "moto.server", "-H", url.hostname, "-p", str(url.port)]
     kwargs = {}
@@ -69,7 +82,18 @@ def start_emulator() -> bool:
     sys.exit(f"Emulator did not start; see {LOG_FILE}")
 
 
+def serve(port):
+    """Run moto in the foreground on all network interfaces (machine acting as the cloud)."""
+    env = {**os.environ, "MOTO_IAM_LOAD_MANAGED_POLICIES": "true"}
+    print(f"Mock AWS cloud listening on port {port} on every network interface. Ctrl+C to stop.\n"
+          "Only use a private network (home Wi-Fi or hotspot): the emulator has no password.")
+    subprocess.run([sys.executable, "-m", "moto.server", "-H", "0.0.0.0", "-p", str(port)], env=env)
+
+
 def stop_emulator():
+    if REMOTE:
+        print(f"The emulator runs on another machine ({ENDPOINT}); stop it there with Ctrl+C.")
+        return
     if not PID_FILE.exists():
         print("No emulator started by this tool.")
         return
@@ -162,9 +186,17 @@ def outputs(stack) -> dict:
 
 
 # --------------------------------------------------------------------- CLI --
+def lab_missing() -> bool:
+    """True if the emulator does not contain the lab (e.g. it was restarted, or it is
+    another machine's fresh emulator), so old Terraform state must be thrown away."""
+    vpcs = AwsContext(mode="demo", endpoint=ENDPOINT).client("ec2").describe_vpcs(
+        Filters=[{"Name": "tag:Project", "Values": [config.PROJECT]}])["Vpcs"]
+    return not vpcs
+
+
 def cmd_up(args):
     fresh = start_emulator()
-    if fresh or args.reset:
+    if fresh or args.reset or lab_missing():
         if not fresh:
             reset_emulator()
         # The emulator keeps everything in memory, so old state files are stale.
@@ -200,6 +232,9 @@ def main():
         func=lambda a: cmd_up(argparse.Namespace(reset=True)))
     sub.add_parser("status", help="show emulator and deployment status").set_defaults(func=cmd_status)
     sub.add_parser("down", help="stop the emulator").set_defaults(func=lambda a: stop_emulator())
+    srv = sub.add_parser("serve", help="run the emulator here for other computers")
+    srv.add_argument("--port", type=int, default=5001)
+    srv.set_defaults(func=lambda a: serve(a.port))
     args = parser.parse_args()
     args.func(args)
 

@@ -75,3 +75,12 @@ def test_save_and_load_scan_round_trip(tmp_path, monkeypatch):
     loaded = results.load_scan(path)
     assert loaded["findings"][0].check_id == "A"
     assert [p.name for p in results.comparable_scans()] == [path.split("/")[-1].split("\\")[-1]]
+
+
+def test_emulator_address_safety():
+    from common.aws import is_emulator_address
+    for ok in ["http://127.0.0.1:5001", "http://localhost:5001", "http://192.168.1.23:5001",
+               "http://10.0.0.5:5001", "http://172.20.10.3:5001"]:
+        assert is_emulator_address(ok), ok
+    for bad in ["https://s3.amazonaws.com", "http://8.8.8.8:5001", "http://example.com:5001"]:
+        assert not is_emulator_address(bad), bad

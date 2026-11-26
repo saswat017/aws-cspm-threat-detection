@@ -55,7 +55,7 @@ def run_scan(aws, use_prowler=True, quiet=False):
 
 def cmd_scan(args):
     aws = AwsContext()
-    banner = ("DEMO MODE: local AWS emulator, not a real AWS account"
+    banner = (f"DEMO MODE: AWS emulator at {aws.endpoint}, not a real AWS account"
               if aws.mode == "demo" else f"LIVE MODE: real AWS, profile {config.AWS_PROFILE}")
     print(f"[{banner}]  account {aws.account_id}  region {aws.region}\n")
     path, meta, findings = run_scan(aws, use_prowler=not args.no_prowler)
